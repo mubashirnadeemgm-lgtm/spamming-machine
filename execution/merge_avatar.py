@@ -14,6 +14,7 @@ import math
 import time
 import uuid
 import re
+import shutil
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(BASE_DIR, ".tmp", "output")
@@ -25,8 +26,12 @@ def ensure_dirs():
 
 def get_duration(filepath):
     """Get duration of a media file using ffprobe."""
+    ffprobe_path = shutil.which("ffprobe")
+    if not ffprobe_path:
+        raise RuntimeError("ffprobe executable not found. Please ensure FFmpeg is installed and in your PATH.")
+
     cmd = [
-        "ffprobe",
+        ffprobe_path,
         "-v", "quiet",
         "-print_format", "json",
         "-show_format",
@@ -92,10 +97,14 @@ def merge_avatar_with_audio(audio_path, avatar_path, ugc_intro_path=None, output
 
     # If UGC intro will be concatenated, output the initial merge directly as
     # normalized .ts so we skip a full re-encode pass later
+    ffmpeg_path = shutil.which("ffmpeg")
+    if not ffmpeg_path:
+        raise RuntimeError("ffmpeg executable not found. Please ensure FFmpeg is installed and in your PATH.")
+
     if has_ugc:
         merged_path = os.path.join(OUTPUT_DIR, f"{timestamp}_{unique_id}_merged.ts")
         cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_path, "-y",
             "-stream_loop", str(loops_needed),
             "-i", avatar_path,
             "-i", audio_path,
@@ -112,7 +121,7 @@ def merge_avatar_with_audio(audio_path, avatar_path, ugc_intro_path=None, output
         ]
     else:
         cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_path, "-y",
             "-stream_loop", str(loops_needed),
             "-i", avatar_path,
             "-i", audio_path,
@@ -141,7 +150,7 @@ def merge_avatar_with_audio(audio_path, avatar_path, ugc_intro_path=None, output
         # Re-encode UGC intro to same normalized .ts format (encode #2)
         intro_reencoded = os.path.join(OUTPUT_DIR, f"{timestamp}_{unique_id}_intro.ts")
         reencode_intro_cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_path, "-y",
             "-i", ugc_intro_path,
             "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
             "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2",
@@ -157,7 +166,7 @@ def merge_avatar_with_audio(audio_path, avatar_path, ugc_intro_path=None, output
 
         # Concatenate using stream copy — NO re-encoding (fast remux)
         concat_cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_path, "-y",
             "-i", f"concat:{intro_reencoded}|{merged_path}",
             "-c", "copy",
             "-movflags", "+faststart",

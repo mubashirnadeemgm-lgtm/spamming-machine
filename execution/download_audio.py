@@ -11,6 +11,7 @@ import sys
 import uuid
 import time
 import re
+import shutil
 
 # Directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,8 +24,12 @@ def ensure_dirs():
 
 def get_audio_duration(filepath):
     """Get duration of an audio file using ffprobe."""
+    ffprobe_path = shutil.which("ffprobe")
+    if not ffprobe_path:
+        raise RuntimeError("ffprobe executable not found. Please ensure FFmpeg is installed and in your PATH.")
+
     cmd = [
-        "ffprobe",
+        ffprobe_path,
         "-v", "quiet",
         "-print_format", "json",
         "-show_format",
@@ -46,7 +51,11 @@ def sanitize_filename(name):
 
 def get_video_title(url):
     """Fetch the YouTube video title using yt-dlp."""
-    cmd = ["yt-dlp", "--print", "title", "--no-playlist", url]
+    yt_dlp_path = shutil.which("yt-dlp")
+    if not yt_dlp_path:
+        raise RuntimeError("yt-dlp executable not found. Please ensure it is installed and in your PATH.")
+
+    cmd = [yt_dlp_path, "--print", "title", "--no-playlist", url]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         return "untitled"
@@ -68,8 +77,12 @@ def download_audio(url):
     unique_id = uuid.uuid4().hex[:8]
     output_template = os.path.join(AUDIO_DIR, f"{timestamp}_{unique_id}.%(ext)s")
 
+    yt_dlp_path = shutil.which("yt-dlp")
+    if not yt_dlp_path:
+        raise RuntimeError("yt-dlp executable not found. Please ensure it is installed and in your PATH.")
+
     cmd = [
-        "yt-dlp",
+        yt_dlp_path,
         "--extract-audio",
         "--audio-format", "mp3",
         "--audio-quality", "0",

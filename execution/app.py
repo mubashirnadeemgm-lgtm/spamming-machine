@@ -145,6 +145,7 @@ def api_download_audio():
 def api_trim_audio():
     """Trim an already-downloaded audio file using FFmpeg."""
     import subprocess, json as json_mod
+    import shutil
 
     data = request.get_json()
     if not data:
@@ -168,7 +169,11 @@ def api_trim_audio():
     start = float(start_time) if start_time is not None else 0
     end = float(end_time) if end_time is not None else None
 
-    cmd = ["ffmpeg", "-y"]
+    ffmpeg_path = shutil.which("ffmpeg")
+    if not ffmpeg_path:
+        return jsonify({"error": "FFmpeg not found. Please ensure it is installed and in PATH."}), 500
+
+    cmd = [ffmpeg_path, "-y"]
     if start > 0:
         cmd += ["-ss", str(start)]
     cmd += ["-i", audio_path]
@@ -186,7 +191,11 @@ def api_trim_audio():
         os.replace(trimmed_path, audio_path)
 
         # Get new duration
-        probe_cmd = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", audio_path]
+        ffprobe_path = shutil.which("ffprobe")
+        if not ffprobe_path:
+            return jsonify({"error": "FFprobe not found. Please ensure FFmpeg is installed and in PATH."}), 500
+
+        probe_cmd = [ffprobe_path, "-v", "quiet", "-print_format", "json", "-show_format", audio_path]
         probe = subprocess.run(probe_cmd, capture_output=True, text=True)
         new_duration = float(json_mod.loads(probe.stdout)["format"]["duration"])
         mins, secs = divmod(int(new_duration), 60)
