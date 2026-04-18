@@ -7,7 +7,8 @@
     "spamming-machine": "./index.js"
   },
   "scripts": {
-    "start": "node index.js start"
+    "start": "node index.js start",
+    "postinstall": "node setup.js"
   },
   "keywords": [
     "youtube",
