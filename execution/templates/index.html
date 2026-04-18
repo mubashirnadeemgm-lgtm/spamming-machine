@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio × Avatar Merge Tool</title>
+    <meta name="description" content="Bulk download YouTube audio, trim, and merge with your avatar videos.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                </div>
+                <div>
+                    <h1>Audio × Avatar</h1>
+                    <p class="subtitle">Bulk YouTube Audio Merge Tool</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="credit-badge" id="credit-badge" title="Credits remaining">
+                    <div class="credit-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+                            <line x1="12" y1="6" x2="12" y2="18" />
+                        </svg>
+                    </div>
+                    <span class="credit-number" id="credit-count">—</span>
+                    <span class="credit-label">credits</span>
+                </div>
+            </div>
+            <div class="step-indicators">
+                <div class="step-dot active" data-step="1"><span>1</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot" data-step="2"><span>2</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot" data-step="3"><span>3</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot" data-step="4"><span>4</span></div>
+                <div class="step-line"></div>
+                <div class="step-dot" data-step="5"><span>5</span></div>
+            </div>
+        </header>
+
+        <!-- ==================== STEP 1: YouTube URLs ==================== -->
+        <section class="step-panel active" id="step-1">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="step-badge">Step 1</div>
+                    <h2>YouTube Links</h2>
+                    <p>Paste one or more YouTube video links — one per line.</p>
+                </div>
+                <div class="bulk-input-group">
+                    <div class="textarea-wrapper">
+                        <textarea id="youtube-urls" rows="6"
+                            placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea>
+                        <span class="url-count" id="url-count">0 links</span>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="btn-download" onclick="downloadAllAudio()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>Download All Audio</span>
+                    </button>
+                </div>
+                <div class="bulk-progress" id="bulk-download-progress" style="display:none;">
+                    <div class="bulk-progress-header">
+                        <span class="bulk-progress-title">Downloading audio...</span>
+                        <span class="bulk-progress-count" id="download-progress-count">0 / 0</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="download-progress-bar"></div>
+                    </div>
+                    <div class="bulk-item-list" id="download-item-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 2: Trim Audio ==================== -->
+        <section class="step-panel" id="step-2">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="step-badge">Step 2</div>
+                    <h2>Trim Audio</h2>
+                    <p>Drag the handles to trim your audio tracks from the beginning or end. This step is optional.</p>
+                </div>
+
+                <div class="trim-track-list" id="trim-track-list"></div>
+
+                <div class="panel-actions">
+                    <button class="btn btn-ghost" onclick="goToStep(1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" onclick="goToStep(3)">
+                        Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 3: Upload Videos ==================== -->
+        <section class="step-panel" id="step-3">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="step-badge">Step 3</div>
+                    <h2>Upload Your Videos</h2>
+                    <p>Upload one or more avatar videos, and optionally a UGC intro clip.</p>
+                </div>
+
+                <div class="upload-section">
+                    <h3 class="upload-section-title">UGC Intro <span class="optional-tag">Optional</span></h3>
+                    <p class="upload-section-desc">Will play before every merged video as an intro.</p>
+                    <div class="upload-zone compact" id="ugc-zone" ondrop="handleDrop(event, 'ugc')"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div class="upload-zone-content" id="ugc-content">
+                            <label class="upload-btn" for="ugc-input">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                                Choose File
+                            </label>
+                            <input type="file" id="ugc-input" accept="video/*" onchange="handleUgcSelect(this)" hidden>
+                            <span class="drag-hint">or drag &amp; drop</span>
+                        </div>
+                        <div class="upload-success" id="ugc-success" style="display:none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            <span id="ugc-filename"></span>
+                            <button class="remove-btn" onclick="removeUgc()">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <h3 class="upload-section-title">Avatar Videos <span class="required-tag">Required</span></h3>
+                    <p class="upload-section-desc">Upload one or more avatar videos. You'll pair them with audio tracks
+                        in the next step.</p>
+                    <div class="avatar-list" id="avatar-list"></div>
+                    <div class="upload-zone compact" id="avatar-zone" ondrop="handleDrop(event, 'avatar')"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div class="upload-zone-content">
+                            <label class="upload-btn" for="avatar-input">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                                Add Avatar Video
+                            </label>
+                            <input type="file" id="avatar-input" accept="video/*" onchange="handleAvatarSelect(this)"
+                                multiple hidden>
+                            <span class="drag-hint">or drag &amp; drop</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-area" id="upload-status" style="display:none;">
+                    <div class="status-content">
+                        <div class="spinner" id="upload-spinner"></div>
+                        <span id="upload-status-text"></span>
+                    </div>
+                </div>
+
+                <div class="panel-actions">
+                    <button class="btn btn-ghost" onclick="goToStep(2)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" id="btn-to-step4" onclick="goToStep(4)" disabled>
+                        Continue
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 4: Pair & Merge ==================== -->
+        <section class="step-panel" id="step-4">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="step-badge">Step 4</div>
+                    <h2>Pair &amp; Merge</h2>
+                    <p>Assign avatar videos to each audio track, then hit merge.</p>
+                </div>
+
+                <div class="pairing-list" id="pairing-list"></div>
+
+                <!-- Processing Order (auto-generated, reorderable) -->
+                <div class="processing-order" id="processing-order" style="display:none;">
+                    <div class="processing-order-header">
+                        <span class="processing-order-title">⚡ Processing Order</span>
+                        <span class="processing-order-count" id="order-count"></span>
+                    </div>
+                    <div class="order-list" id="order-list"></div>
+                </div>
+
+                <div class="bulk-progress" id="bulk-merge-progress" style="display:none;">
+                    <div class="bulk-progress-header">
+                        <span class="bulk-progress-title">Merging videos...</span>
+                        <span class="bulk-progress-count" id="merge-progress-count">0 / 0</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="merge-progress-bar"></div>
+                    </div>
+                    <div class="bulk-item-list" id="merge-item-list"></div>
+                </div>
+
+                <div class="panel-actions">
+                    <button class="btn btn-ghost" onclick="goToStep(3)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                        Back
+                    </button>
+                    <button class="btn btn-primary btn-merge" id="btn-merge" onclick="mergeAllVideos()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                        Merge All Videos
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 5: Results ==================== -->
+        <section class="step-panel" id="step-5">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="step-badge">Step 5</div>
+                    <h2>Results</h2>
+                    <p>Your merged videos are ready.</p>
+                </div>
+                <div class="bulk-results" id="bulk-results">
+                    <div class="bulk-results-header">
+                        <div class="result-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                        </div>
+                        <h3>All Videos Generated!</h3>
+                    </div>
+                    <div class="results-list" id="results-list"></div>
+                    <div class="generate-more-wrapper">
+                        <button class="btn btn-primary btn-generate-more" onclick="window.location.reload()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10" />
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                            </svg>
+                            Generate More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="credit-toast-container" id="toast-container"></div>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

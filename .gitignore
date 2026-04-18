@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+.env
+
+# Node
+node_modules/
+
+# App tmp Data
+.tmp/
+credits.json
+
+# Agent
+.agent/

@@ -1,0 +1,20 @@
+{
+  "name": "@mubashir7008/spamming-machine",
+  "version": "1.0.0",
+  "description": "YouTube Audio × Avatar Video Merge Tool",
+  "main": "index.js",
+  "bin": {
+    "spamming-machine": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js start"
+  },
+  "keywords": [
+    "youtube",
+    "video",
+    "avatar",
+    "merge"
+  ],
+  "author": "Mubashir Nadeem",
+  "license": "ISC"
+}
