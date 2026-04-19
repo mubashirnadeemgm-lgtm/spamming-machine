@@ -9,12 +9,14 @@ import sys
 # Add parent directory so we can import sibling modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for
+from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import uuid
 import time
 import json
 import random
+import shutil
+from supabase import create_client, Client
 
 from download_audio import download_audio
 from merge_avatar import merge_avatar_with_audio
@@ -32,10 +34,26 @@ app = Flask(
     template_folder=os.path.join(os.path.dirname(__file__), "templates"),
     static_folder=os.path.join(os.path.dirname(__file__), "static")
 )
+app.secret_key = os.environ.get("SECRET_KEY", "default-dev-secret-key-12345")
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max upload
 
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm", "avi", "mkv"}
 
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_qFSdw6eSOmL0QKAO2x8yWg_tbKAM_-o")
+
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+except Exception as e:
+    supabase = None
+    print(f"Supabase init error: {e}")
+
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'logout', 'static']
+    if request.endpoint and request.endpoint not in allowed_routes:
+        if 'user' not in session:
+            return redirect(url_for('login'))
 
 def ensure_dirs():
     for d in [UPLOAD_DIR, OUTPUT_DIR, AUDIO_DIR]:
@@ -86,6 +104,35 @@ def allowed_video(filename):
 @app.route("/")
 def landing():
     return render_template("landing.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        
+        if not supabase:
+            return render_template("login.html", error="Supabase configuration is missing (URL).")
+
+        try:
+            res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+            if res.user:
+                session['user'] = res.user.id
+                return redirect(url_for('dashboard'))
+            else:
+                return render_template("login.html", error="Invalid credentials.")
+        except Exception as e:
+            error_msg = str(e)
+            if "Invalid login credentials" in error_msg:
+                error_msg = "Invalid email or password."
+            return render_template("login.html", error=error_msg)
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
 
 
 @app.route("/dashboard")
