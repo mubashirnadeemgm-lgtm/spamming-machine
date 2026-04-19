@@ -1,6 +1,6 @@
 {
   "name": "@mubashir7008/spamming-machine",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "YouTube Audio × Avatar Video Merge Tool",
   "main": "index.js",
   "bin": {
