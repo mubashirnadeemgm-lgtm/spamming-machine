@@ -39,10 +39,7 @@ app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max upload
 
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm", "avi", "mkv"}
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_qFSdw6eSOmL0QKAO2x8yWg_tbKAM_-o")
-
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://oxyfnyhjtksfwzvmcstw.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_qFSdw6eSOmL0QKAO2x8yWg_tbKAM_-o")
 
 @app.before_request
