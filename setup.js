@@ -95,11 +95,6 @@ async function setup() {
         execSync(`"${pythonCmd}" -m pip install --upgrade pip`, { stdio: 'inherit' });
         execSync(`"${pythonCmd}" -m pip install yt-dlp`, { stdio: 'inherit' });
 
-        console.log("Installing core supabase package without dependencies to avoid pyiceberg...");
-        execSync(`"${pythonCmd}" -m pip install "supabase==1.2.0" --no-deps`, { stdio: 'inherit' });
-        console.log("Installing required sub-packages...");
-        execSync(`"${pythonCmd}" -m pip install httpx gotrue postgrest realtime storage3`, { stdio: 'inherit' });
-
         const reqPath = path.join(__dirname, 'requirements.txt');
         if (fs.existsSync(reqPath)) {
             execSync(`"${pythonCmd}" -m pip install -r "${reqPath}"`, { stdio: 'inherit' });

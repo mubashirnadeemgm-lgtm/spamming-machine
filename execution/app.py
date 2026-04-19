@@ -16,7 +16,7 @@ import time
 import json
 import random
 import shutil
-from supabase import create_client, Client
+import requests
 
 from download_audio import download_audio
 from merge_avatar import merge_avatar_with_audio
@@ -42,11 +42,8 @@ ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm", "avi", "mkv"}
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_qFSdw6eSOmL0QKAO2x8yWg_tbKAM_-o")
 
-try:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
-except Exception as e:
-    supabase = None
-    print(f"Supabase init error: {e}")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_qFSdw6eSOmL0QKAO2x8yWg_tbKAM_-o")
 
 @app.before_request
 def require_login():
@@ -111,21 +108,25 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
         
-        if not supabase:
+        if not SUPABASE_URL:
             return render_template("login.html", error="Supabase configuration is missing (URL).")
 
         try:
-            res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            if res.user:
-                session['user'] = res.user.id
+            url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
+            response = requests.post(
+                url,
+                headers={"apikey": SUPABASE_KEY, "Content-Type": "application/json"},
+                json={"email": email, "password": password}
+            )
+            data = response.json()
+            if response.status_code == 200 and "access_token" in data:
+                session['user'] = data.get("user", {}).get("id", email)
                 return redirect(url_for('dashboard'))
             else:
-                return render_template("login.html", error="Invalid credentials.")
+                error_msg = data.get("error_description", "Invalid email or password.")
+                return render_template("login.html", error=error_msg)
         except Exception as e:
-            error_msg = str(e)
-            if "Invalid login credentials" in error_msg:
-                error_msg = "Invalid email or password."
-            return render_template("login.html", error=error_msg)
+            return render_template("login.html", error="Login request failed.")
 
     return render_template("login.html")
 
