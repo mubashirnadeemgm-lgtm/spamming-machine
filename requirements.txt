@@ -1,3 +1,7 @@
 flask
- 
-supabase 
+supabase==1.2.0
+httpx
+gotrue
+postgrest
+realtime
+storage3
